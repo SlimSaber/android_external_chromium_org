@@ -135,8 +135,7 @@ bool GinJavaBridgeDispatcherHost::FindObjectId(
 
 JavaObjectWeakGlobalRef GinJavaBridgeDispatcherHost::GetObjectWeakRef(
     GinJavaBoundObject::ObjectID object_id) {
-  scoped_refptr<GinJavaBoundObject>* result = objects_.Lookup(object_id);
-  scoped_refptr<GinJavaBoundObject> object(result ? *result : NULL);
+  scoped_refptr<GinJavaBoundObject> object = FindObject(object_id);
   if (object.get())
     return object->GetWeakRef();
   else
@@ -326,6 +325,12 @@ bool GinJavaBridgeDispatcherHost::OnMessageReceived(
   return handled;
 }
 
+scoped_refptr<GinJavaBoundObject> GinJavaBridgeDispatcherHost::FindObject(
+    GinJavaBoundObject::ObjectID object_id) {
+  scoped_refptr<GinJavaBoundObject>* result_ptr = objects_.Lookup(object_id);
+  return result_ptr ? *result_ptr : NULL;
+}
+
 namespace {
 
 class IsValidRenderFrameHostHelper
@@ -373,7 +378,7 @@ void GinJavaBridgeDispatcherHost::OnGetMethods(
     render_frame_host->Send(reply_msg);
     return;
   }
-  scoped_refptr<GinJavaBoundObject> object(*objects_.Lookup(object_id));
+  scoped_refptr<GinJavaBoundObject> object = FindObject(object_id);
   if (!object) {
     LOG(ERROR) << "WebView: Unknown object: " << object_id;
     IPC::WriteParam(reply_msg, std::set<std::string>());
@@ -409,7 +414,7 @@ void GinJavaBridgeDispatcherHost::OnHasMethod(
     IPC::Message* reply_msg) {
   DCHECK_CURRENTLY_ON(BrowserThread::UI);
   DCHECK(render_frame_host);
-  scoped_refptr<GinJavaBoundObject> object(*objects_.Lookup(object_id));
+  scoped_refptr<GinJavaBoundObject> object = FindObject(object_id);
   if (!object) {
     LOG(ERROR) << "WebView: Unknown object: " << object_id;
     IPC::WriteParam(reply_msg, false);
@@ -446,7 +451,7 @@ void GinJavaBridgeDispatcherHost::OnInvokeMethod(
     IPC::Message* reply_msg) {
   DCHECK_CURRENTLY_ON(BrowserThread::UI);
   DCHECK(render_frame_host);
-  scoped_refptr<GinJavaBoundObject> object(*objects_.Lookup(object_id));
+  scoped_refptr<GinJavaBoundObject> object = FindObject(object_id);
   if (!object) {
     LOG(ERROR) << "WebView: Unknown object: " << object_id;
     base::ListValue result;

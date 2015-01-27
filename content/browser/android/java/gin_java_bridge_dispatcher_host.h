@@ -75,6 +75,8 @@ class GinJavaBridgeDispatcherHost
   void OnObjectWrapperDeleted(RenderFrameHost* render_frame_host,
                               GinJavaBoundObject::ObjectID object_id);
 
+  scoped_refptr<GinJavaBoundObject> FindObject(
+      GinJavaBoundObject::ObjectID object_id);
   bool IsValidRenderFrameHost(RenderFrameHost* render_frame_host);
   void SendMethods(RenderFrameHost* render_frame_host,
                    const std::set<std::string>& method_names);
